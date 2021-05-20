@@ -1,9 +1,9 @@
 # Hello
 
+A simple Trello alternative written in Node.js / Total.js framework without any dependencies and built on NoSQL embedded database.
+
 - [Join Total.js Telegram](https://t.me/totaljs)
 - [Support](https://www.totaljs.com/support/)
-
-A simple Trello alternative written in Node.js.
 
 __Requirements__:
 
@@ -18,3 +18,7 @@ __Requirements__:
 - __enter your e-mail address (you will be logged into the app)__
 - set up settings via "cog" icon
 	- you will need Total API token due
+
+## Server-side implementation
+
+- open Total.js API builder <http://127.0.0.1:8000/builder/>
