@@ -1,0 +1,136 @@
+<div data---="largeform__common.form__if:cardform;icon:far fa-plus-circle;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="cardform">
+	<div class="padding npb">
+
+		<div data---="wysiwyg__?.name__null;$assign:CARDEDIT;placeholder:@(Your title ...)__''" class="m mt5"></div>
+
+		<div class="row">
+			<div class="col-md-6 m">
+				<div data---="input__?.projectid__dirsource:common.projects;dirplaceholder:@(Search);placeholder:@(Choose a project)">@(Project)</div>
+			</div>
+			<div class="col-md-3 m">
+				<div data---="input__?.estimate__type:number__0">@(Estimate)</div>
+			</div>
+			<div class="col-md-3 m">
+				<div data---="input__?.deadline__type:date;placeholder:@(yyyy-mm-dd)__null">@(Deadline)</div>
+			</div>
+		</div>
+	</div>
+	<hr />
+	<div class="padding npt">
+
+		<div class="caption"><i class="far fa-user-cowboy"></i>@(Who will be solver?)</div>
+
+		<div data---="radiobuttonexpert__?.solverid__datasource:common.users2__user.id">
+			<script type="text/html">
+				<div class="EXuser">
+					<div>
+						{{ name | initials }}
+						<div>{{ name }}</div>
+					</div>
+				</div>
+			</script>
+		</div>
+
+		<div class="caption"><i class="far fa-tags"></i>@(Labels)</div>
+
+		<div data---="checkboxlistexpert__?.labels__datasource:common.labels">
+			<script type="text/html">
+				<div class="EXlabel">
+					<div>
+						<span style="background:{{ color }}"></span>
+						<div>{{ name }}</div>
+					</div>
+				</div>
+			</script>
+		</div>
+
+		<div class="caption"><i class="far fa-tasks"></i>@(Tasks)</div>
+		<div data---="movable__null__selector:.inlinetask;exec:?/move">
+			<div data-bind="?.tasks__template">
+				<script type="text/html">
+				{{ foreach m in value }}
+					<div class="inlinetask{{ if m.isdone }} checked{{ fi }}" draggable="true" data-id="{{ m.id }}">
+						<i class="fa fa-trash-o exec" data-exec="?/remove"></i>
+						<span class="exec" data-exec="?/check"><i class="fas fa-check"></i></span><div>{{ m.name }}</div>
+					</div>
+				{{ end }}
+				</script>
+			</div>
+		</div>
+		<div class="mt10" data---="enterbox__null__exec:?/create;icon:far fa-plus-circle;maxlength:1000;placeholder:@(Type a task name)"></div>
+
+
+	</div>
+	<nav data---="validation__?__track:name,tasks">
+		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('cardform', function(exports) {
+
+		exports.reload = function(com) {
+			var model = GET('?');
+			var id = model ? model.id : null;
+			com.reconfigure({ title: id ? '@(Update card)' : '@(Create card)' });
+
+			WAIT('CARDEDIT', function() {
+				setTimeout(function() {
+					CARDEDIT.focus();
+				}, 1000);
+			});
+		};
+
+		exports.create = function(val, clear) {
+			if (val) {
+				PUSH('?.tasks', { id: Date.now().toString(36), name: val, done: false });
+				clear();
+			}
+		};
+
+		exports.move = function(elements) {
+
+			var model = GET('?');
+			var arr = [];
+
+			for (var i = 0; i < elements.length; i++) {
+				var el = elements[i];
+				var id = el.getAttribute('data-id');
+				arr.push(model.tasks.findItem('id', id));
+			}
+
+			model.tasks = arr;
+		};
+
+		exports.check = function(el) {
+			var parent = el.parent().tclass('checked');
+			var id = parent.attrd('id');
+			var model = GET('?');
+			model.tasks.findItem('id', id).done = parent.hclass('checked');
+		};
+
+		exports.remove = function(el, e) {
+			e.stopPropagation();
+			var parent = el.parent().tclass('checked');
+			var id = parent.attrd('id');
+			var model = GET('?');
+			model.tasks = model.tasks.remove('id', id);
+			UPD('?.tasks @change');
+		};
+
+		exports.submit = function(hide) {
+			var model = GET('? @reset');
+
+			if (model.deadline) {
+				model.deadline.setHours(23);
+				model.deadline.setMinutes(59);
+			}
+
+			DAPI(model.id ? ('cards_update/' + model.id) : 'cards_create', model, hide);
+		};
+
+	});
+
+</script>

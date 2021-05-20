@@ -1,0 +1,68 @@
+@{layout('')}
+@{title('Hello')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+	<meta name="robots" content="all,follow" />
+	<link rel="stylesheet" href="https://cdn.componentator.com/spa.min@18pro.css" />
+	<script src="https://cdn.componentator.com/spa.min@18.js"></script>
+	@{import('meta', 'head', 'default.css + ui.css', 'default.js + ui.js', 'favicon.ico')}
+	@{if PREF.settings && PREF.settings.color}
+	<style id="csssettings">
+		:root {
+			--color: @{PREF.settings.color};
+		}
+	</style>
+	@{fi}
+	<style>
+		button { background-color: var(--color); width: 100%; height: 40px; border: 0; color: #FFF; border-radius: 5px; font-size: 14px; }
+		button i { margin-right: 7px; }
+		button:disabled { background-color: #F0F0F0; color: #A0A0A0; cursor: not-allowed; }
+	</style>
+</head>
+<body data---="exec">
+
+	<div data---="LAZY message__null__style:2"></div>
+
+	<div data---="animation">
+		<div data-scope="loginform" class="animation" style="background-color:#FFF;padding:35px;border-radius:5px;margin:100px 0 0;width:380px;position:absolute;left:50%;top:40%;margin:-200px 0 0 -175px;box-shadow:0 0 20px rgba(0,0,0,0.3);">
+			<div data---="enter__?">
+				<div class="caption" style="font-size:20px;margin-bottom:15px"><i class="far fa-hand-peace" style="margin-right:8px"></i>@(Hello)</div>
+				<div data---="input__?.email__required:1__'@'" class="m" style="margin-top:10px" data-bind="?.showcode__disabled">@(Email address)</div>
+				<div data-bind="?.showcode__show" class="hidden">
+					<p><i class="far fa-qrcode mr5"></i>@(Please enter the code which you will receive on your e-mail address.)</p>
+					<div data---="pin__?.code__count:4;requied:1" class="m">@(Code)</div>
+				</div>
+				<div data---="validation__?" class="mt10">
+					<button name="submit" class="exec" data-exec="?/submit" disabled><i class="far fa-sign-in-alt"></i>@(Sign-in)</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+
+		var common = {};
+
+		PLUGIN('loginform', function(exports) {
+			exports.submit = function() {
+				API('/api/ login', GET('? @reset'), ASETTER('message/response', function(response) {
+					if (response.value) {
+						SET('?.showcode', true);
+						FIND('pin').focus();
+					} else
+						location.href = '/';
+				}));
+			};
+
+		});
+
+	</script>
+
+</body>
+</html>

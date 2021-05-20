@@ -1,0 +1,643 @@
+@{layout('')}
+@{title('Hello')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=11" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="robots" content="all,follow" />
+	<link href="//cdn.componentator.com/spa.min@18pro.css" rel="stylesheet" />
+	<script src="//cdn.componentator.com/spa.min@18.js"></script>
+	@{import('meta', 'head', 'default.js + ui.js', 'default.css + ui.css', 'favicon.ico')}
+	@{if PREF.settings && PREF.settings.color}
+	<style id="csssettings">
+		:root {
+			--color: @{PREF.settings.color};
+		}
+	</style>
+	@{fi}
+</head>
+<body data---="exec" class="invisible">
+
+	<div data---="LAZY directory"></div>
+	<div data---="LAZY menu__null__style:2"></div>
+	<div data---="LAZY approve"></div>
+	<div data---="LAZY datepicker"></div>
+	<div data---="LAZY message__null__style:2;closeoutside:1"></div>
+	<div data---="LAZY colorpicker"></div>
+	<div data---="LAZY faicons"></div>
+	<div data---="LAZY floatinginput"></div>
+	<div data---="LAZY sounds"></div>
+	<div data---="websocket__null__url:/"></div>
+	<div data---="faviconunread__common.unread"></div>
+	<div data---="loading" class="hidden"></div>
+
+	<header>
+		<div class="user" data-bind="user__template">
+			<script type="text/html">
+				{{ value.name | initials }}
+				<div>{{ value.name }}</div>
+			</script>
+		</div>
+		<button title="@(Mute)" class="exec sounds" data-exec="common/sounds"><i data-bind="common.sounds__exec:common/checksounds"></i></button>
+		<button title="@(Create card)" class="exec highlight" data-exec="common/create"><i class="far fa-plus-circle"></i></button>
+		@{if user.sa}
+		<button title="@(Users)" class="exec" data-exec="common/users"><i class="far fa-users"></i></button>
+		<button title="@(Labels)" class="exec" data-exec="common/labels"><i class="far fa-tags"></i></button>
+		<button title="@(Projects)" class="exec" data-exec="common/projects"><i class="far fa-code-branch"></i></button>
+		<button title="@(Stats)" class="exec" data-exec="common/stats"><i class="far fa-calendar-alt"></i></button>
+		<button title="@(Settings)" class="exec" data-exec="common/settings"><i class="far fa-cog"></i></button>
+		@{fi}
+		<button title="@(Logout)" class="exec" data-exec="common/logout"><i class="far fa-sign-out"></i></button>
+	</header>
+
+	<main>
+		<div data---="kanban__common.items__parent:window;margin:40;move:common/move;contextmenu:common/contextmenu">
+
+			<script type="text/html">
+				<div class="header">
+					<div class="name"><span><i class="{{ icon }}"></i></span>{{ name }}</div>
+					<!--
+					<div class="search"><input type="text" placeholder="@(Search)" maxlength="100" /></div>-->
+				</div>
+			</script>
+
+			<script type="text/html">
+				<div class="padding">
+					<div class="moved">{{ if dtmoved }}{{ dtmoved | time2 }}{{ fi }}</div>
+					<div class="date"><i class="fas fa-star-christmas"></i>{{ dtcreated | time2 }}</div>
+					{{ if projectid }}
+						<div class="project">{{ projectid | projectcolor }}{{ projectid | project }}</div>
+					{{ fi }}
+					{{ if labels && labels.length }}
+					<div class="labels">{{ labels | labels }}</div>
+					{{ fi }}
+					<div class="html">{{ name | raw }}</div>
+					{{ if tasks && tasks.length }}
+						<div class="progress"><span>{{ tasks | progress }}</span><div><div style="width:{{ tasks | progress }}"></div></div></div>
+						<div class="tasks">
+						{{ foreach m in tasks }}
+							<div class="inlinetask{{ if m.isdone }} checked{{ fi }}" data-id="{{ m.id }}" title="{{ m.name }}">
+								<span class="exec" data-exec="common/toggle"><i class="fas fa-check"></i></span><div>{{ m.name }}</div>
+							</div>
+						{{ end }}
+						</div>
+					{{ fi }}
+				</div>
+				<div class="meta">
+					<div class="user">{{ solverid | user }}</div>
+					{{ if list !== 'done' && deadline }}<div class="deadline"><i class="far fa-alarm-clock"></i>{{ deadline | deadline }}</div>{{ fi }}
+					<div class="logwork exec" data-exec="common/logwork"><i class="far fa-clock"></i><span>{{ minutes | logwork }}</span></div>
+				</div>
+			</script>
+
+		</div>
+	</main>
+
+	@{json(user, 'userdata')}
+
+	<div data---="importer__common.form__if:cardform;url:/forms/card.html"></div>
+	<div data---="importer__common.form__if:detailform;url:/forms/detail.html"></div>
+	<div data---="importer__common.form__if:projectsform;url:/forms/projects.html"></div>
+	<div data---="importer__common.form__if:settingsform;url:/forms/settings.html"></div>
+	<div data---="importer__common.form__if:usersform;url:/forms/users.html"></div>
+	<div data---="importer__common.form__if:labelsform;url:/forms/labels.html"></div>
+	<div data---="importer__common.form__if:statsform;url:/forms/stats.html"></div>
+
+	<script>
+
+		var common = { sounds: true };
+		var user = PARSE('#userdata');
+
+		common.items = [];
+		common.items.push({ id: 'open', name: 'Open', icon: 'far fa-inbox-in', items: [] });
+		common.items.push({ id: 'inprogress', name: 'In progress', icon: 'far fa-cog fa-spin', items: [] });
+		common.items.push({ id: 'pending', name: 'Pending', icon: 'far fa-clock', items: [] });
+		common.items.push({ id: 'done', name: 'Done', icon: 'far fa-check-circle', items: [] });
+
+		CACHEPATH('common.sounds', '1 week');
+
+		DEF.api = '/api/';
+		ENV('date', '@(yyyy-MM-dd HH:mm)');
+
+		common.page = 'dashboard';
+
+		ON('ready', function() {
+			var body = $('body');
+			common.darkmode && body.aclass('ui-dark');
+			body.rclass('invisible');
+		});
+
+		ON('@flag showloading', function() {
+			SETTER('loading/show');
+		});
+
+		ON('@flag hideloading', function() {
+			SETTER('loading/hide', 1000);
+		});
+
+		function updatecard(item) {
+			for (var i = 0; i < common.items.length; i++) {
+				var list = common.items[i];
+				var index = list.items.findIndex('id', item.id);
+				if (index === -1) {
+					if (item.list === list.id)
+						list.items.push(item);
+				} else {
+					// var old = list.items[index];
+					if (item.list === list.id)
+						list.items[index] = item;
+					else
+						list.items.splice(index, 1);
+				}
+			}
+			UPD('common.items');
+		}
+
+		ON('message', function(msg) {
+			switch (msg.TYPE) {
+				case 'users':
+					EXEC('common/refresh_users', function() {
+						EXEC('common/refresh_cards');
+					});
+					break;
+				case 'projects':
+					EXEC('common/refresh_projects', function() {
+						EXEC('common/refresh_cards');
+					});
+					break;
+				case 'labels':
+					EXEC('common/refresh_labels', function() {
+						EXEC('common/refresh_cards');
+					});
+					break;
+				case 'settings':
+					CSS(':root{\n--color:{0}!important}'.format(msg.body.color), 'settings');
+					document.title = 'Hello - ' + msg.body.name;
+					break;
+				case 'cards/create':
+					common.items.findItem('id', 'open').items.push(msg.body);
+					UPD('common.items');
+					if (msg.body.userid !== user.id) {
+						EXEC('common/play', 'notify');
+						INC('common.unread');
+					}
+					break;
+				case 'cards/logwork':
+					var el = $('.ui-kanban-item[data-id="{0}"]'.format(msg.body.id));;
+					el.find('.logwork').find('span').text(Thelpers.logwork(msg.body.minutes));
+					for (var i = 0; i < common.items.length; i++) {
+						var item = common.items[i];
+						var card = item.items.findItem('id', msg.id);
+						if (card) {
+							card.minutes = msg.body.minutes;
+							EXEC('common/play', 'badge');
+							return;
+						}
+					}
+					break;
+				case 'cards/toggle':
+					msg = msg.body;
+					for (var i = 0; i < common.items.length; i++) {
+						var item = common.items[i];
+						var card = item.items.findItem('id', msg.id);
+						if (card) {
+							var task = card.tasks.findItem('id', msg.taskid);
+							if (task)
+								task.isdone = msg.isdone;
+							var parent = $('.inlinetask[data-id="{0}"]'.format(msg.taskid)).tclass('checked', msg.isdone).closest('.ui-kanban-item');
+							var progress = parent.find('.progress');
+							var p = Thelpers.progress(card.tasks);
+							progress.find('div > div').css('width', p);
+							progress.find('span').html(p);
+							if (msg.userid !== user.id) {
+								INC('common.unread');
+								EXEC('common/play', 'badge');
+							}
+							return;
+						}
+					}
+					break;
+				case 'cards/update':
+					updatecard(msg.body);
+					if (msg.body.userid !== user.id) {
+						EXEC('common/play', 'badge');
+						INC('common.unread');
+					}
+					break;
+				case 'cards/remove':
+					for (var i = 0; i < common.items.length; i++) {
+						var item = common.items[i];
+						var index = item.items.findIndex('id', msg.id);
+						if (index !== -1) {
+							item.items.splice(index, 1);
+							UPD('common.items');
+							return;
+						}
+					}
+					break;
+
+				case 'move':
+					var fromlist = common.items.findItem('id', msg.body.fromlist);
+					var tolist = common.items.findItem('id', msg.body.tolist);
+					if (fromlist && tolist) {
+						var index = fromlist.items.findIndex('id', msg.body.id);
+						if (index !== -1) {
+							var item = fromlist.items[index];
+							fromlist.items.splice(index, 1);
+							if (tolist.id === 'done')
+								tolist.items.unshift(item);
+							else
+								tolist.items.push(item);
+
+							if (msg.body.userid !== user.id) {
+								EXEC('common/play', tolist.id === 'done' ? 'drum' : 'badge');
+								INC('common.unread');
+							}
+
+							UPD('common.items');
+						}
+					}
+
+					break;
+			}
+		});
+
+		PLUGIN('common', function(exports) {
+
+			exports.create = function(el) {
+				SET('cardform @default', {});
+				SET('common.form', 'cardform');
+			};
+
+			exports.click = function(meta) {
+				SET('detailform', meta.item);
+				SET('common.form', 'detailform');
+			};
+
+			exports.play = function(name) {
+				common.sounds && SETTER('sounds/' + name);
+			};
+
+			exports.checksounds = function(value, path, el) {
+				el.rclass().aclass(common.sounds ? 'far fa-volume' : 'far fa-volume-mute');
+			};
+
+			exports.sounds = function() {
+				TOGGLE('common.sounds');
+			};
+
+			exports.move = function(group, target) {
+
+				var el = $('.ui-kanban-item[data-id="{0}"]'.format(target.item.id));
+				var dom = el[0];
+				var index = NODEINDEXOF(dom);
+				var prev = dom.parentNode.children[index - 1];
+				var data = {};
+
+				target.item.dtmoved = NOW;
+				el.find('.moved').html(Thelpers.time2(target.item.dtmoved));
+
+				if (prev) {
+					prev = target.group.items.findItem('id', prev.getAttribute('data-id'));
+					if (prev)
+						data.index = prev.sort - 1;
+				}
+
+				if (data.index == null)
+					data.index = Date.now();
+
+				if (group.id === target.group.id) {
+					DAPI(QUERIFY('cards_position/' + target.item.id, data));
+				} else {
+					data.tolist = target.group.id;
+					data.fromlist = group.id;
+					DAPI(QUERIFY('cards_move/' + target.item.id, data));
+				}
+			};
+
+			exports.toggle = function(el) {
+				var taskid = el.closest('.inlinetask').attrd('id');
+				var id = el.closest('figure').attrd('id');
+				DAPI('cards_toggle/' + id + '/' + taskid + ' @showloading', ASETTER('message/response @hideloading', NOOP));
+			};
+
+			exports.logwork = function(el) {
+				var opt = {};
+				opt.value = '';
+				opt.placeholder = '@(Minutes)';
+				opt.summary = '@(Type count of logged minutes on this card, minutes will be added to the current count of minutes)';
+				opt.icon = 'far fa-clock';
+				opt.element = el;
+				opt.callback = function(val) {
+					val = val.trim().parseInt();
+					if (val !== 0) {
+						var id = el.closest('.ui-kanban-item').attrd('id');
+						DAPI('cards_logwork/' + id, { value: val }, ASETTER('message/response', NOOP));
+					}
+				};
+				SETTER('floatinginput/show', opt);
+			};
+
+			exports.labels = function() {
+				SET('common.form', 'labelsform');
+			};
+
+			exports.projects = function() {
+				SET('common.form', 'projectsform');
+			};
+
+			exports.users = function() {
+				SET('common.form', 'usersform');
+			};
+
+			exports.stats = function() {
+				SET('common.form', 'statsform');
+			};
+
+			exports.settings = function() {
+				DAPI('settings_read', ASETTER('message/response', function(response) {
+					SET('settingsform @reset', response);
+					SET('common.form', 'settingsform');
+				}));
+			};
+
+			exports.refresh_users = function(callback) {
+				DAPI('users_query', function(response) {
+
+					response.quicksort('name_asc');
+
+					var users2 = [];
+					for (var i = 0; i < response.length; i++) {
+						if (!response[i].isdisabled)
+							users2.push(response[i]);
+					}
+
+					SET('common.users', response);
+					SET('common.users2', users2);
+					callback && callback(response);
+				});
+			};
+
+			exports.refresh_labels = function(callback) {
+				DAPI('labels_query', function(response) {
+					SET('common.labels', response);
+					callback && callback(response);
+				});
+			};
+
+			exports.refresh_projects = function(callback) {
+				DAPI('projects_query', function(response) {
+					SET('common.projects', response);
+					callback && callback(response);
+				});
+			};
+
+			exports.refresh_cards = function(callback) {
+				DAPI('cards_query', function(response) {
+
+					var cache = {};
+
+					for (var i = 0; i < common.items.length; i++) {
+						var item = common.items[i];
+						cache[item.id] = item.items = [];
+					}
+
+					for (var i = 0; i < response.length; i++) {
+						var item = response[i];
+						cache[item.list].push(item);
+					}
+
+					for (var i = 0; i < common.items.length; i++) {
+						var item = common.items[i];
+						var sort = 'sort';
+						for (var j = 0; j < item.items.length; j++) {
+							var m = item.items[j];
+							m.sort = m.userid === user.id ? m.sortuser : m.sortsolver;
+						}
+						item.items.quicksort('sort_desc');
+					}
+
+					UPD('common.items');
+				});
+			};
+
+			exports.refresh = function() {
+				exports.refresh_users(function() {
+					exports.refresh_projects(function() {
+						exports.refresh_labels(function() {
+							exports.refresh_cards();
+						});
+					});
+				});
+			};
+
+			exports.page = function(el) {
+				var id = typeof(el) === 'string' ? el : el.attrd('if');
+				SET('?.page', id);
+			};
+
+			exports.darkmode = function() {
+				var el = $('body').tclass('ui-dark');
+				SET('common.darkmode', el.hclass('ui-dark'));
+			};
+
+			exports.logout = function() {
+				DAPI('logout', function() {
+					location.href = '/';
+				});
+			};
+
+			exports.contextmenu = function(group, el, e) {
+
+				if (group.item.userid !== user.id)
+					return;
+
+				var opt = {};
+				opt.items = [];
+				opt.x = e.pageX;
+				opt.y = e.pageY;
+				opt.items.push({ id: 'update', name: '@(Update)', icon: 'far fa-pencil' });
+				opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'far fa-trash-alt red' });
+				opt.callback = function(item) {
+					if (item.id === 'update') {
+						SET('cardform @reset', CLONE(group.item));
+						SET('common.form', 'cardform');
+					} else if (item.id === 'remove') {
+						SETTER('approve/show', '@(Are you sure you want to remove selected card?)', '"far fa-trash-alt" @(Remove)', function() {
+							DAPI('cards_remove/' + group.item.id, NOOP);
+						});
+					}
+				};
+
+				SETTER('menu/show', opt);
+			};
+
+			exports.refresh();
+
+		});
+
+		Thelpers.users = function(arr) {
+			var builder = [];
+			for (var i = 0; i < arr.length; i++) {
+				var name = common.users.findValue('id', arr[i], 'name');
+				builder.push(Thelpers.initials(name));
+			}
+			return builder.join('');
+		};
+
+		Thelpers.user = function(val) {
+			return Thelpers.initials(common.users.findValue('id', val && val === user.id ? this.userid : val || this.userid, 'name'));
+		};
+
+		Thelpers.labels = function(arr) {
+			var builder = [];
+			for (var i = 0; i < arr.length; i++) {
+				var item = common.labels.findItem('id', arr[i]);
+				if (item)
+					builder.push('<span style="background:{color}">{{ name }}</span>'.arg(item));
+			}
+			return builder.join('');
+		};
+
+		Thelpers.project = function(val) {
+			var item = common.projects.findItem('id', val);
+			return item ? '<span>' + item.company.encode() + '</span>' + item.name.encode() : '';
+		};
+
+		Thelpers.tasks = function(val) {
+			var ok = 0;
+			var no = 0;
+			for (var i = 0; i < val.length; i++) {
+				if (val[i].done)
+					ok++;
+				else
+					no++;
+			}
+
+			return '<i class="fal fa-ballot-check"></i> <b>' + ok + '</b> / ' + val.length;
+		};
+
+		Thelpers.deadline = function(val) {
+			return '<span class="timer" data-time="{0}">--:--:--</span>'.format(val.getTime());
+		};
+
+		Thelpers.logwork = function(val) {
+
+			if (val > 60) {
+				var h = Math.ceil(val / 60);
+				var m = val % 60;
+				return h.padLeft(2) + ':' + m.padLeft(2);
+			}
+
+			return (val || 0) + ' min.';
+		};
+
+		Thelpers.progress = function(val) {
+			var done = 0;
+			for (var i = 0; i < val.length; i++) {
+				var item = val[i];
+				if (item.isdone)
+					done++;
+			}
+			return (((done / val.length) * 100) >> 0) + '%';
+		};
+
+		Thelpers.projectcolor = function(val) {
+			var item = common.projects.findItem('id', val);
+			return item && item.color ? '<div class="project-color" style="background:{0}"></div>'.format(item.color) : '';
+		};
+
+		common.deadlineindexer = 0;
+
+		setInterval(function() {
+
+			var arr = common.deadline || EMPTYARRAY;
+
+			if ((common.deadlineindexer++) % 3 === 0) {
+				var tmp = document.querySelectorAll('span.timer');
+				arr = [];
+				for (var i = 0; i < tmp.length; i++) {
+					if (tmp[i].offsetParent)
+						arr.push(tmp[i]);
+				}
+				common.deadline = arr;
+			}
+
+			var now = Date.now();
+
+			for (var i = 0; i < arr.length; i++) {
+				var el = arr[i];
+				var t = (new Date(+el.getAttribute('data-time')) - now) / 1000;
+				var h = Math.ceil(t / 60 / 60);
+				var m = Math.ceil(h % 60);
+				var s = t % 60 >> 0;
+				var is = el.isexpired || false;
+
+				el.isexpired = t < 0;
+				el.innerHTML = t < 0 ? '@(Expired)' : (h.padLeft(2) + ':' + m.padLeft(2) + ':' + s.padLeft(2));
+
+				if (is !== el.isexpired) {
+					if (el.isexpired)
+						el.parentNode.classList.add('expired');
+					else
+						el.parentNode.classList.remove('expired');
+				}
+			}
+
+			common.deadlineindexer++;
+
+		}, 1000);
+
+		Thelpers.time = function(value) {
+
+			if (!value)
+				return value;
+
+			var diff = Date.now() - (value instanceof Date ? value : value.parseDate()).getTime();
+
+			var minutes = ((diff / 1000) / 60) >> 0;
+			if (minutes < 60) {
+				if (minutes < 3)
+					return 'now';
+				return minutes + ' minutes ago';
+			}
+
+			var hours = (minutes / 60) >> 0;
+			if (hours < 24)
+				return hours + ' ' + Thelpers.pluralize(hours, 'hours', 'hour', 'hours', 'hours') + ' ago';
+
+			var days = (hours / 24) >> 0;
+			if (days < 30)
+				return days + ' ' + Thelpers.pluralize(days, 'days', 'day', 'days', 'days') + ' ago';
+
+			var months = (days / 29) >> 0;
+			if (months < 12)
+				return months + ' ' + Thelpers.pluralize(months, 'months', 'month', 'months', 'months') + ' ago';
+
+			var years = (months / 12) >> 0;
+			return years + ' ' + Thelpers.pluralize(years, 'years', 'year', 'years', 'years') + ' ago';
+		};
+
+		Thelpers.time2 = function(value) {
+			return '<span class="ta-time" data-time="{0}" title="{2}">{1}</span>'.format(value.getTime(), Thelpers.time(value), value.format(null));
+		};
+
+		ON('knockknock', function() {
+			$('.ta-time').each(function() {
+				var el = $(this);
+				el.html(Thelpers.time(new Date(+el.attrd('time'))));
+			});
+		});
+
+		$(W).on('focus', function() {
+			common.unread && SET('common.unread', 0);
+		});
+
+	</script>
+
+</body>
+</html>

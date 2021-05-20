@@ -1,0 +1,102 @@
+<div data---="form__common.form__if:labelsform;title:@(Labels);icon:far fa-tags;reload:?/reload;scrollbar:1;submit:?/submit;width:600" class="hidden" data-scope="labelsform">
+	<div class="padding labelsform">
+
+		<div>
+			<ul class="togglebuttons">
+				<li class="exec" data-exec="?/create">
+					<i class="far fa-plus-circle green"></i>@(Create)
+				</li>
+			</ul>
+		</div>
+
+		<div data-bind="common.labels__template" class="labels mt10 m" data---="edit__common.labels__exec:?/edit">
+			<script type="text/html">
+				{{ foreach m in value }}
+					<div data-id="{{ m.id }}" class="item">
+						<div class="remove exec" data-exec="?/remove"><i class="far fa-trash-alt"></i></div>
+						<div data-edit="name:color" class="color edit" style="background:{{ m.color }}"></div>
+						<div data-edit="name:name" class="name edit">{{ m.name }}</div>
+					</div>
+				{{ end }}
+			</script>
+		</div>
+		<div class="help"><i class="far fa-question-circle"></i>@(Labels can be attached to the cards)</div>
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Close)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('labelsform', function(exports) {
+
+		exports.reload = function(com) {
+		};
+
+		exports.create = function(el) {
+			var opt = {};
+			opt.element = el;
+			opt.icon = 'far fa-tags';
+			opt.value = '';
+			opt.offsetY = 40;
+			opt.summary = '@(Type a label name, color can be changed when the label will be created)';
+			opt.placeholder = '@(Label name)';
+			opt.callback = function(val) {
+				val = val.trim();
+				val && DAPI('labels_insert @showloading', { name: val, color: Thelpers.color(val) }, ASETTER('message/response', function() {
+					EXEC('common/refresh_labels @hideloading');
+				}));
+			};
+			SETTER('floatinginput/show', opt);
+		};
+
+		exports.remove = function(el) {
+			SETTER('approve/show', '@(Are you sure you want to remove selected label?)', '"fas fa-trash-alt" @(Remove)', function() {
+				DAPI('labels_remove/' + el.closest('.item').attrd('id'), ASETTER('message/response', function() {
+					EXEC('common/refresh_labels');
+				}));
+			});
+		};
+
+		exports.edit = function(meta) {
+
+			var opt = {};
+			var item = meta.model.findItem('id', meta.id);
+			opt.element = meta.element;
+
+
+			if (meta.name === 'color') {
+
+				opt.callback = function(val) {
+					meta.element.css('background', val);
+					DAPI('labels_update/' + item.id, { color: val }, NOOP);
+				};
+
+				SETTER('colorpicker/show', opt);
+				return;
+			}
+
+			opt.value = item[meta.name];
+			opt.callback = function(val) {
+
+				if (meta.name === 'rate')
+					val = val.parseFloat();
+
+				item[meta.name] = val;
+				var data = {};
+				data[meta.name] = val;
+
+				if (meta.name === 'rate')
+					meta.element.find('b').text(val.format(1));
+				else
+					meta.element.text(val);
+				DAPI('labels_update/' + item.id, data, NOOP);
+			};
+
+			SETTER('floatinginput/show', opt);
+		};
+
+	});
+
+</script>

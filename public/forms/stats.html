@@ -1,0 +1,26 @@
+<div data---="largeform__common.form__if:statsform;title:@(Monthly stats);icon:far fa-calendar-alt;autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="statsform">
+	<div class="padding">
+		Coming soon.
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('statsform', function(exports) {
+
+		exports.reload = function(com) {
+			// var model = GET('?');
+			// var id = model ? model.id : null;
+			// com.reconfigure({ title: id ? '@(Update)' : '@(Create)' });
+		};
+
+		exports.submit = function(hide) {
+			hide();
+		};
+
+	});
+
+</script>

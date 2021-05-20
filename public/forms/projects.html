@@ -1,0 +1,89 @@
+<div data---="largeform__common.form__if:projectsform;title:@(Projects);icon:far fa-code-branch;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="projectsform">
+	<div class="padding">
+
+		<div>
+			<ul class="togglebuttons">
+				<li class="exec" data-exec="?/create">
+					<i class="far fa-plus-circle green"></i>@(Create)
+				</li>
+			</ul>
+		</div>
+
+		<div data-bind="common.projects__template" class="projectsform mt10">
+			<script type="text/html">
+				{{ foreach m in value }}
+					<div data-id="{{ m.id }}" class="item">
+						<div class="remove exec" data-exec="?/remove"><i class="far fa-trash-alt"></i></div>
+						<div class="update exec" data-exec="?/update"><i class="far fa-pencil"></i></div>
+						<div class="rate"><b>{{ m.rate | format(1) }}</b> &euro; / h.</div>
+						<div class="company">{{ m.company }}</div>
+						<div class="name">{{ if m.color }}<i class="fa fa-circle mr5" style="color:{{ m.color }}"></i>{{ fi }}{{ m.name }}</div>
+					</div>
+				{{ end }}
+			</script>
+		</div>
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Close)</button>
+	</nav>
+</div>
+
+<div data---="importer__common.form2__if:projectform;url:/forms/project.html"></div>
+
+<script>
+
+	PLUGIN('projectsform', function(exports) {
+
+		exports.reload = function(com) {
+		};
+
+		exports.create = function(el) {
+			var opt = {};
+			opt.element = el;
+			SET('projectform @default', {});
+			SET('common.form2', 'projectform');
+		};
+
+		exports.remove = function(el) {
+			SETTER('approve/show', '@(Are you sure you want to remove selected project?)', '"fas fa-trash-alt" @(Remove)', function() {
+				DAPI('projects_remove/' + el.closest('.item').attrd('id'), ASETTER('message/response', function() {
+					EXEC('common/refresh_projects');
+				}));
+			});
+		};
+
+		exports.update = function(el) {
+			var id = el.closest('.item').attrd('id');
+			var item = CLONE(common.projects.findItem('id', id));
+			SET('projectform @reset', item);
+			SET('common.form2', 'projectform');
+		};
+
+		exports.edit = function(meta) {
+
+			var opt = {};
+			var item = meta.model.findItem('id', meta.id);
+			opt.element = meta.element;
+			opt.value = item[meta.name];
+			opt.callback = function(val) {
+
+				if (meta.name === 'rate')
+					val = val.parseFloat();
+
+				item[meta.name] = val;
+				var data = {};
+				data[meta.name] = val;
+
+				if (meta.name === 'rate')
+					meta.element.find('b').text(val.format(1));
+				else
+					meta.element.text(val);
+				DAPI('projects_update/' + item.id, data, NOOP);
+			};
+
+			SETTER('floatinginput/show', opt);
+		};
+
+	});
+
+</script>

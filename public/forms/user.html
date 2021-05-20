@@ -1,0 +1,33 @@
+<div data---="miniform__common.form2__if:userform;icon:far fa-user-circle;autofocus:true;reload:?/reload;submit:?/submit;width:400;zindex:50" class="hidden" data-scope="userform">
+	<div class="padding">
+		<div data---="input__?.name__required:1;maxlength:50__''" class="m">@(Name)</div>
+		<div data---="input__?.email__required:1;type:email__'@'" class="m">@(E-mail address)</div>
+		<div data---="checkbox__?.sa__null__false">@(Administrator)</div>
+		<div data---="checkbox__?.isdisabled__null__false">@(Disabled)</div>
+	</div>
+	<nav data---="validation__?">
+		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('userform', function(exports) {
+
+		exports.reload = function(com) {
+			var model = GET('?');
+			var id = model ? model.id : null;
+			com.reconfigure({ title: id ? '@(Update user)' : '@(Create user)' });
+		};
+
+		exports.submit = function(hide) {
+			var model = GET('? @reset');
+			DAPI((model.id ? ('users_update/' + model.id) : 'users_insert') + ' @showloading', model, function() {
+				EXEC('common/refresh_users @hideloading', hide);
+			});
+		};
+
+	});
+
+</script>

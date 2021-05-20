@@ -1,0 +1,65 @@
+<div data---="largeform__common.form__if:usersform;title:@(Users);icon:far fa-users;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="usersform">
+	<div>
+		<div class="padding npb">
+			<div>
+				<ul class="togglebuttons">
+					<li class="exec" data-exec="?/create">
+						<i class="far fa-plus-circle green"></i>@(Create)
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div data-bind="common.users__template" class="usersform mt10" data---="edit__common.users__exec:?/edit">
+			<script type="text/html">
+				{{ foreach m in value }}
+					<div data-id="{{ m.id }}" class="item{{ if m.isdisabled }} disabled{{ fi }}">
+						<div class="exec" data-exec="?/update">
+							{{ if m.sa }}<div class="admin"><i class="far fa-user-crown"></i></div>{{ fi }}
+							<div class="remove exec" data-exec="?/remove" data-prevent="true"><i class="far fa-trash-alt"></i></div>
+							{{ m.name | initials }}
+							<div class="name">{{ m.name }}</div>
+							<div class="email">{{ m.email }}</div>
+						</div>
+					</div>
+				{{ end }}
+			</script>
+		</div>
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Close)</button>
+	</nav>
+</div>
+
+<div data---="importer__common.form2__if:userform;url:/forms/user.html"></div>
+
+<script>
+
+	PLUGIN('usersform', function(exports) {
+
+		exports.reload = function(com) {
+		};
+
+		exports.create = function() {
+			SET('userform @default', {});
+			SET('common.form2', 'userform');
+		};
+
+		exports.remove = function(el) {
+			SETTER('approve/show', '@(Are you sure you want to remove selected user?)', '"fas fa-trash-alt" @(Remove)', function() {
+				DAPI('users_remove/' + el.closest('.item').attrd('id'), ASETTER('message/response', function() {
+					EXEC('common/refresh_users');
+				}));
+			});
+		};
+
+		exports.update = function(el) {
+			var id = el.closest('.item').attrd('id');
+			var item = CLONE(common.users.findItem('id', id));
+			SET('userform @reset', item);
+			SET('common.form2', 'userform');
+		};
+
+
+	});
+
+</script>

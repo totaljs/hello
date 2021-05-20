@@ -1,0 +1,23 @@
+<div data---="largeform__common.form__if:detailform;title:@(Card);icon:far fa-receipt;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="detailform">
+	<div class="padding">
+		<div data-bind="?.name__html" class="m"></div>
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('detailform', function(exports) {
+
+		exports.reload = function(com) {
+		};
+
+		exports.submit = function(hide) {
+			hide();
+		};
+
+	});
+
+</script>
