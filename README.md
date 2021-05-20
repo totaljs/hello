@@ -10,6 +10,8 @@ __Requirements__:
 - Node.js v14
 - Total.js v4
 
+![Hello app](http://cdn.totaljs.com/images/hello.png)
+
 ## Install instructions
 
 - download source-code
