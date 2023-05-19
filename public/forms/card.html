@@ -1,4 +1,4 @@
-<div data---="largeform__common.form__if:cardform;icon:far fa-plus-circle;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="cardform">
+<div data---="largeform__common.form__if:cardform;icon:ti ti-plus-circle;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="cardform">
 	<div class="padding npb">
 
 		<div data---="wysiwyg__?.name__null;$assign:CARDEDIT;placeholder:@(Your title ...)__''" class="m mt5"></div>
@@ -18,7 +18,7 @@
 	<hr />
 	<div class="padding npt">
 
-		<div class="caption"><i class="far fa-user-cowboy"></i>@(Who will be solver?)</div>
+		<div class="caption"><i class="ti ti-account"></i>@(Who will be solver?)</div>
 
 		<div data---="radiobuttonexpert__?.solverid__datasource:common.users2__user.id">
 			<script type="text/html">
@@ -31,7 +31,7 @@
 			</script>
 		</div>
 
-		<div class="caption"><i class="far fa-tags"></i>@(Labels)</div>
+		<div class="caption"><i class="ti ti-tags"></i>@(Labels)</div>
 
 		<div data---="checkboxlistexpert__?.labels__datasource:common.labels">
 			<script type="text/html">
@@ -44,25 +44,25 @@
 			</script>
 		</div>
 
-		<div class="caption"><i class="far fa-tasks"></i>@(Tasks)</div>
+		<div class="caption"><i class="ti ti-tasks"></i>@(Tasks)</div>
 		<div data---="movable__null__selector:.inlinetask;exec:?/move">
 			<div data-bind="?.tasks__template">
 				<script type="text/html">
 				{{ foreach m in value }}
 					<div class="inlinetask{{ if m.isdone }} checked{{ fi }}" draggable="true" data-id="{{ m.id }}">
-						<i class="fa fa-trash-o exec" data-exec="?/remove"></i>
-						<span class="exec" data-exec="?/check"><i class="fas fa-check"></i></span><div>{{ m.name }}</div>
+						<i class="ti ti-remove exec" data-exec="?/remove"></i>
+						<span class="exec" data-exec="?/check"><i class="ti ti-check"></i></span><div>{{ m.name }}</div>
 					</div>
 				{{ end }}
 				</script>
 			</div>
 		</div>
-		<div class="mt10" data---="enterbox__null__exec:?/create;icon:far fa-plus-circle;maxlength:1000;placeholder:@(Type a task name)"></div>
+		<div class="mt10" data---="enterbox__null__exec:?/create;icon:ti ti-plus-circle;maxlength:1000;placeholder:@(Type a task name)"></div>
 
 
 	</div>
 	<nav data---="validation__?__track:name,tasks">
-		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
 		<button name="cancel">@(Cancel)</button>
 	</nav>
 </div>

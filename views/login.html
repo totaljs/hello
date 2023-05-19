@@ -32,14 +32,14 @@
 	<div data---="animation">
 		<div data-scope="loginform" class="animation" style="background-color:#FFF;padding:35px;border-radius:5px;margin:100px 0 0;width:380px;position:absolute;left:50%;top:40%;margin:-200px 0 0 -175px;box-shadow:0 0 20px rgba(0,0,0,0.3);">
 			<div data---="enter__?">
-				<div class="caption" style="font-size:20px;margin-bottom:15px"><i class="far fa-hand-peace" style="margin-right:8px"></i>@(Hello)</div>
+				<div class="caption" style="font-size:20px;margin-bottom:15px"><i class="ti ti-start" style="margin-right:8px"></i>@(Hello)</div>
 				<div data---="input__?.email__required:1__'@'" class="m" style="margin-top:10px" data-bind="?.showcode__disabled">@(Email address)</div>
 				<div data-bind="?.showcode__show" class="hidden">
-					<p><i class="far fa-qrcode mr5"></i>@(Please enter the code which you will receive on your e-mail address.)</p>
+					<p><i class="ti ti-qrcode mr5"></i>@(Please enter the code which you will receive on your e-mail address.)</p>
 					<div data---="pin__?.code__count:4;requied:1" class="m">@(Code)</div>
 				</div>
 				<div data---="validation__?" class="mt10">
-					<button name="submit" class="exec" data-exec="?/submit" disabled><i class="far fa-sign-in-alt"></i>@(Sign-in)</button>
+					<button name="submit" class="exec" data-exec="?/submit" disabled><i class="ti ti-sign-in"></i>@(Sign-in)</button>
 				</div>
 			</div>
 		</div>

@@ -1,10 +1,10 @@
-<div data---="form__common.form__if:labelsform;title:@(Labels);icon:far fa-tags;reload:?/reload;scrollbar:1;submit:?/submit;width:600" class="hidden" data-scope="labelsform">
+<div data---="form__common.form__if:labelsform;title:@(Labels);icon:ti ti-tags;reload:?/reload;scrollbar:1;submit:?/submit;width:600" class="hidden" data-scope="labelsform">
 	<div class="padding labelsform">
 
 		<div>
 			<ul class="togglebuttons">
 				<li class="exec" data-exec="?/create">
-					<i class="far fa-plus-circle green"></i>@(Create)
+					<i class="ti ti-plus-circle green"></i>@(Create)
 				</li>
 			</ul>
 		</div>
@@ -13,14 +13,14 @@
 			<script type="text/html">
 				{{ foreach m in value }}
 					<div data-id="{{ m.id }}" class="item">
-						<div class="remove exec" data-exec="?/remove"><i class="far fa-trash-alt"></i></div>
+						<div class="remove exec" data-exec="?/remove"><i class="ti ti-remove"></i></div>
 						<div data-edit="name:color" class="color edit" style="background:{{ m.color }}"></div>
 						<div data-edit="name:name" class="name edit">{{ m.name }}</div>
 					</div>
 				{{ end }}
 			</script>
 		</div>
-		<div class="help"><i class="far fa-question-circle"></i>@(Labels can be attached to the cards)</div>
+		<div class="help"><i class="ti ti-question-circle"></i>@(Labels can be attached to the cards)</div>
 	</div>
 	<nav>
 		<button name="cancel" style="width:100%">@(Close)</button>
@@ -37,7 +37,7 @@
 		exports.create = function(el) {
 			var opt = {};
 			opt.element = el;
-			opt.icon = 'far fa-tags';
+			opt.icon = 'ti ti-tags';
 			opt.value = '';
 			opt.offsetY = 40;
 			opt.summary = '@(Type a label name, color can be changed when the label will be created)';
@@ -52,7 +52,7 @@
 		};
 
 		exports.remove = function(el) {
-			SETTER('approve/show', '@(Are you sure you want to remove selected label?)', '"fas fa-trash-alt" @(Remove)', function() {
+			SETTER('approve/show', '@(Are you sure you want to remove selected label?)', '"ti ti-remove" @(Remove)', function() {
 				DAPI('labels_remove/' + el.closest('.item').attrd('id'), ASETTER('message/response', function() {
 					EXEC('common/refresh_labels');
 				}));

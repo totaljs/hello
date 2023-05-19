@@ -1,10 +1,10 @@
-<div data---="largeform__common.form__if:usersform;title:@(Users);icon:far fa-users;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="usersform">
+<div data---="largeform__common.form__if:usersform;title:@(Users);icon:ti ti-users;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="usersform">
 	<div>
 		<div class="padding npb">
 			<div>
 				<ul class="togglebuttons">
 					<li class="exec" data-exec="?/create">
-						<i class="far fa-plus-circle green"></i>@(Create)
+						<i class="ti ti-plus-circle green"></i>@(Create)
 					</li>
 				</ul>
 			</div>
@@ -14,8 +14,8 @@
 				{{ foreach m in value }}
 					<div data-id="{{ m.id }}" class="item{{ if m.isdisabled }} disabled{{ fi }}">
 						<div class="exec" data-exec="?/update">
-							{{ if m.sa }}<div class="admin"><i class="far fa-user-crown"></i></div>{{ fi }}
-							<div class="remove exec" data-exec="?/remove" data-prevent="true"><i class="far fa-trash-alt"></i></div>
+							{{ if m.sa }}<div class="admin"><i class="ti ti-account"></i></div>{{ fi }}
+							<div class="remove exec" data-exec="?/remove" data-prevent="true"><i class="ti ti-remove"></i></div>
 							{{ m.name | initials }}
 							<div class="name">{{ m.name }}</div>
 							<div class="email">{{ m.email }}</div>
@@ -45,7 +45,7 @@
 		};
 
 		exports.remove = function(el) {
-			SETTER('approve/show', '@(Are you sure you want to remove selected user?)', '"fas fa-trash-alt" @(Remove)', function() {
+			SETTER('approve/show', '@(Are you sure you want to remove selected user?)', '"ti ti-remove" @(Remove)', function() {
 				DAPI('users_remove/' + el.closest('.item').attrd('id'), ASETTER('message/response', function() {
 					EXEC('common/refresh_users');
 				}));

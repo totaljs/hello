@@ -1,10 +1,10 @@
-<div data---="largeform__common.form__if:projectsform;title:@(Projects);icon:far fa-code-branch;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="projectsform">
+<div data---="largeform__common.form__if:projectsform;title:@(Projects);icon:ti ti-code-branch;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="projectsform">
 	<div class="padding">
 
 		<div>
 			<ul class="togglebuttons">
 				<li class="exec" data-exec="?/create">
-					<i class="far fa-plus-circle green"></i>@(Create)
+					<i class="ti ti-plus-circle green"></i>@(Create)
 				</li>
 			</ul>
 		</div>
@@ -13,11 +13,11 @@
 			<script type="text/html">
 				{{ foreach m in value }}
 					<div data-id="{{ m.id }}" class="item">
-						<div class="remove exec" data-exec="?/remove"><i class="far fa-trash-alt"></i></div>
-						<div class="update exec" data-exec="?/update"><i class="far fa-pencil"></i></div>
+						<div class="remove exec" data-exec="?/remove"><i class="ti ti-remove"></i></div>
+						<div class="update exec" data-exec="?/update"><i class="ti ti-pencil"></i></div>
 						<div class="rate"><b>{{ m.rate | format(1) }}</b> &euro; / h.</div>
 						<div class="company">{{ m.company }}</div>
-						<div class="name">{{ if m.color }}<i class="fa fa-circle mr5" style="color:{{ m.color }}"></i>{{ fi }}{{ m.name }}</div>
+						<div class="name">{{ if m.color }}<i class="ti ti-circle-alt mr5" style="color:{{ m.color }}"></i>{{ fi }}{{ m.name }}</div>
 					</div>
 				{{ end }}
 			</script>
@@ -45,7 +45,7 @@
 		};
 
 		exports.remove = function(el) {
-			SETTER('approve/show', '@(Are you sure you want to remove selected project?)', '"fas fa-trash-alt" @(Remove)', function() {
+			SETTER('approve/show', '@(Are you sure you want to remove selected project?)', '"ti ti-remove" @(Remove)', function() {
 				DAPI('projects_remove/' + el.closest('.item').attrd('id'), ASETTER('message/response', function() {
 					EXEC('common/refresh_projects');
 				}));
